@@ -1,0 +1,4375 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\begin_modules
+theorems-ams
+theorems-chap
+InStar
+knitr
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "lmodern" "default"
+\font_sans "lmss" "default"
+\font_typewriter "lmtt" "default"
+\font_math "auto" "auto"
+\font_default_family rmdefault
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize 12
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date true
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2.5cm
+\topmargin 2cm
+\rightmargin 2.5cm
+\bottommargin 2cm
+\headheight 2.5cm
+\headsep 2.5cm
+\footskip 2.5cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Statistical Computing I
+\begin_inset Newline newline
+\end_inset
+
+Instructor : Prof.
+ Sourabh Bhattacharya
+\end_layout
+
+\begin_layout Author
+Student Name : Spandan Ghoshal
+\begin_inset Newline newline
+\end_inset
+
+Roll : MD2124
+\end_layout
+
+\begin_layout Subsection*
+Introduction
+\end_layout
+
+\begin_layout Standard
+To know whether these estimates are more or less consistent or not (ergodicity)
+ we plot the cumulative means of these posterior samples.
+\end_layout
+
+\begin_layout Standard
+The Space Shuttle Challenger exploded 73 second after liftoff on January
+ 28th, 1986.
+ The disaster claimed the lives of all seven astronauts on board, including
+ school teacher Christa McAuliffe.1 The details surrounding this disaster
+ were very involved.
+ The main concern of engineers in launching the Challenger was the evidence
+ that the large O-rings sealing the several sections of the boosters could
+ fail in cold temperatures.
+\end_layout
+
+\begin_layout Standard
+In this analysis we mainly use the data from previous launches to get an
+ idea about how the O-rings faliures are associated with covariates such
+ as surrounding environment temperature and pressure.
+ 
+\end_layout
+
+\begin_layout Subsection*
+Exploratory Data Analysis
+\end_layout
+
+\begin_layout Standard
+We first plot, the responses with individual covariates to get idea about
+ their effects.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+library(alr4)
+\end_layout
+
+\begin_layout Plain Layout
+
+library(ggplot2)
+\end_layout
+
+\begin_layout Plain Layout
+
+library(glmnet)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Data loading
+\end_layout
+
+\begin_layout Plain Layout
+
+Datas <- Challeng
+\end_layout
+
+\begin_layout Plain Layout
+
+Datas <- Datas[,1:3]
+\end_layout
+
+\begin_layout Plain Layout
+
+rownames(Datas) <- NULL
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+normalize <- function(x)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+  return((x-mean(x))/sd(x))
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Datas <- data.frame(lapply(Datas[,c(1,2)], normalize),Datas$fail)
+\end_layout
+
+\begin_layout Plain Layout
+
+Datas$Datas.fail[which(Datas$Datas.fail == 2)] <- 1
+\end_layout
+
+\begin_layout Plain Layout
+
+# EDA
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(Datas, aes(y=temp, x=Datas.fail)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+geom_jitter(aes(colour=as.factor(Datas.fail)),width = 0.1)
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+from the plot of 
+\begin_inset Formula $Y$
+\end_inset
+
+ versus 
+\begin_inset Formula $x_{1}$
+\end_inset
+
+ i.e.
+ temperature, we can see that there is clear negative dependence of temperature
+ with chance of failure as higher the temperature, lesser 
+\begin_inset Formula $1$
+\end_inset
+
+ values are observed.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(Datas, aes(y=pres, x=Datas.fail)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+geom_jitter(aes(colour=as.factor(Datas.fail)),width = 0.1)
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Whereas, in case of pressure, no such trend is noted as if the failure doesn't
+ even depend on pressure.
+\end_layout
+
+\begin_layout Author
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+Logistic Regression Model
+\end_layout
+
+\begin_layout Standard
+As the begining, we fit a logistic model with 
+\begin_inset Formula $Y$
+\end_inset
+
+ as the response and 
+\begin_inset Formula $x_{1},x_{2}$
+\end_inset
+
+ as the covariates.
+ Since this is a frequentist model, for the time being we don't impart any
+ prior information for the parameters.
+ We just compute their MLEs using 
+\series bold
+glm
+\series default
+ R package.
+ Here, are the codes required for that :-
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+mod.glm <- glm(formula = Datas.fail ~ .,family = "binomial",data = Datas)
+\end_layout
+
+\begin_layout Plain Layout
+
+summary(mod.glm)
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Here, from the summary output, we can clearly see that the 
+\series bold
+temp 
+\series default
+variable is statistically significant at 
+\begin_inset Formula $5\%$
+\end_inset
+
+ level whereas 
+\series bold
+pres 
+\series default
+is not.
+ This also statistically signifies our suspicion at the begining.
+ We will use these estimates as initial guesses in the upcoming MCMC implementat
+ions.
+\end_layout
+
+\begin_layout Standard
+Next, to visualize, we plot the fitted logistic model seperately for the
+ covariates 
+\series bold
+temp 
+\series default
+and 
+\series bold
+pres
+\series default
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot( Datas, aes(x=temp, y=Datas.fail)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_point() +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_smooth(method = "glm", 
+\end_layout
+
+\begin_layout Plain Layout
+
+              method.args = list(family = "binomial"), 
+\end_layout
+
+\begin_layout Plain Layout
+
+              se = FALSE) + 
+\end_layout
+
+\begin_layout Plain Layout
+
+labs(title = "Failure Probability",x = "tempareture",ylab = "Failure")
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# pres
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot( Datas, aes(x=pres, y=Datas.fail)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_point() +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_smooth(method = "glm", 
+\end_layout
+
+\begin_layout Plain Layout
+
+              method.args = list(family = "binomial"), 
+\end_layout
+
+\begin_layout Plain Layout
+
+              se = FALSE) + 
+\end_layout
+
+\begin_layout Plain Layout
+
+labs(title = "Failure Probability",x = "pressure",ylab = "Failure")
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Author
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Bayesian Model 1
+\end_layout
+
+\begin_layout Subsection*
+Bayesian Logistic Model 1
+\end_layout
+
+\begin_layout Standard
+After the frequentist exploration, now we move on to the Bayesian paradigm.
+ We write the logistic model as :-
+\begin_inset Formula 
+\[
+P\left(Y_{i}=1|x_{i}\right)=\frac{e^{\beta_{0}+\beta_{1}x_{1i}+\beta_{2}x_{2i}}}{1+e^{\beta_{0}+\beta_{1}x_{1i}+\beta_{2}x_{2i}}}=\pi_{i},i=1,\dots,n
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $x_{1}$
+\end_inset
+
+ and 
+\begin_inset Formula $x_{2}$
+\end_inset
+
+ are the normalized variables temperature and pressure during the launch
+ and 
+\begin_inset Formula $Y$
+\end_inset
+
+ represents the indicator variable whether any of the O-rings failed or
+ not.
+\end_layout
+
+\begin_layout Standard
+We consider both the variables 
+\begin_inset Formula $x_{1}$
+\end_inset
+
+ and 
+\begin_inset Formula $x_{2}$
+\end_inset
+
+ to be centered and scaled mainly because of computation issues with the
+ logit link function.
+ Obviously we can obtain the coefficients in terms of original variables
+ easily.
+\end_layout
+
+\begin_layout Standard
+The likelihood function of 
+\begin_inset Formula $\boldsymbol{\beta}$
+\end_inset
+
+ given the observed data 
+\begin_inset Formula $\boldsymbol{y,X}$
+\end_inset
+
+ can be written as :-
+\begin_inset Formula 
+\begin{align*}
+f\left(y_{i}|\boldsymbol{\beta},x_{i}\right) & =\pi_{i}^{y_{i}}\left(1-\pi_{i}\right)^{1-y_{i}}\\
+ & =\left[\frac{e^{\beta_{0}+\beta_{1}x_{1i}+\beta_{2}x_{2i}}}{1+e^{\beta_{0}+\beta_{1}x_{1i}+\beta_{2}x_{2i}}}\right]^{y_{i}}\left[\frac{1}{1+e^{\beta_{0}+\beta_{1}x_{1i}+\beta_{2}x_{2i}}}\right]^{1-y_{i}}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+now, if we assume diffused normal prior for 
+\begin_inset Formula $\boldsymbol{\beta}\sim N_{3}\left(\boldsymbol{0},\lambda^{-1}\boldsymbol{I}_{3}\right)$
+\end_inset
+
+ for small value of 
+\begin_inset Formula $\lambda$
+\end_inset
+
+ as we don't consider any specific information to be imparted in the prior
+ :-
+\begin_inset Formula 
+\[
+\pi\left(\boldsymbol{\beta}\right)\propto\exp\left(-\frac{\lambda}{2}\boldsymbol{\beta}^{T}\boldsymbol{\beta}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Hence, the posterior of 
+\begin_inset Formula $\boldsymbol{\beta}$
+\end_inset
+
+ can be written as :-
+\begin_inset Formula 
+\begin{align*}
+\pi\left(\boldsymbol{\beta}|\boldsymbol{x},\boldsymbol{y}\right) & \propto\pi\left(\boldsymbol{\beta}\right)f\left(\boldsymbol{y}|\boldsymbol{\beta},\boldsymbol{x}\right)\\
+ & \propto\exp\left(-\frac{\lambda}{2}\boldsymbol{\beta}^{T}\boldsymbol{\beta}\right)\prod_{i=1}^{n}\left[\frac{e^{\beta_{0}+\beta_{1}x_{1i}+\beta_{2}x_{2i}}}{1+e^{\beta_{0}+\beta_{1}x_{1i}+\beta_{2}x_{2i}}}\right]^{y_{i}}\left[\frac{1}{1+e^{\beta_{0}+\beta_{1}x_{1i}+\beta_{2}x_{2i}}}\right]^{1-y_{i}}\\
+ & \propto\exp\left(-\frac{\lambda}{2}\boldsymbol{\beta}^{T}\boldsymbol{\beta}\right)\prod\limits _{i=1}^{n}\left[\frac{e^{y_{i}\boldsymbol{\beta}^{T}\boldsymbol{x_{i}}}}{1+e^{\boldsymbol{\beta}^{T}\boldsymbol{x_{i}}}}\right]\left(=\widetilde{p}\left(\boldsymbol{\beta}\right)\right)
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now, in order to draw samples from this posterior distribution of 
+\begin_inset Formula $\boldsymbol{\beta}$
+\end_inset
+
+, we use the following MCMC algorithm.
+\end_layout
+
+\begin_layout Itemize
+We have to draw samples from the posterior distribution of 
+\begin_inset Formula $\boldsymbol{\beta}$
+\end_inset
+
+ which can be written as 
+\begin_inset Formula $p\left(\boldsymbol{\beta}\right)=\frac{\widetilde{p}\left(\boldsymbol{\beta}\right)}{Z_{p}}$
+\end_inset
+
+ where, 
+\begin_inset Formula $Z_{p}$
+\end_inset
+
+ denotes the intractible normalizing constant and 
+\begin_inset Formula $\widetilde{p}\left(\boldsymbol{\beta}\right)$
+\end_inset
+
+ denotes the part that is easily computable.
+\end_layout
+
+\begin_layout Itemize
+Now, we select our proposal distribution as 
+\begin_inset Formula $q\left(\boldsymbol{\beta}|\boldsymbol{\beta}^{\left(\tau\right)}\right)$
+\end_inset
+
+ where 
+\begin_inset Formula $\boldsymbol{\beta}^{\left(\tau\right)}$
+\end_inset
+
+is the current iterate of 
+\begin_inset Formula $\boldsymbol{\beta}$
+\end_inset
+
+.
+ For implementing the basic Markov Chain Monte Carlo, we choose, 
+\begin_inset Formula $q\left(\right)$
+\end_inset
+
+ to be a symmetric distribution i.e., 
+\begin_inset Formula 
+\[
+q\left(\boldsymbol{\beta}|\boldsymbol{\beta}^{\left(\tau\right)}\right)\sim N_{3}\left(\boldsymbol{\beta}^{\left(\tau\right)},\Sigma\right)
+\]
+
+\end_inset
+
+ which is a trivariate normal density with mean 
+\begin_inset Formula $\boldsymbol{\beta}^{\left(\tau\right)}$
+\end_inset
+
+ and variance covariance matrix 
+\begin_inset Formula $\Sigma$
+\end_inset
+
+.
+ We take 
+\begin_inset Formula $\Sigma=\text{diag}\left(\sigma_{1},\sigma_{2},\sigma_{3}\right)$
+\end_inset
+
+ where 
+\begin_inset Formula $\sigma_{i}$
+\end_inset
+
+ are chosen in such a manner that the target distribution is neither explored
+ too slowly such that it gets stuck in a mode even if the posterior is multimoda
+l, nor too large that the acceptance probbility becomes too low.
+\end_layout
+
+\begin_layout Itemize
+Finally, in an iteration 
+\begin_inset Formula $\tau$
+\end_inset
+
+, where current value is 
+\begin_inset Formula $\boldsymbol{\beta}^{\left(\tau\right)}$
+\end_inset
+
+, we select a new value 
+\begin_inset Formula $\boldsymbol{\beta}^{*}$
+\end_inset
+
+ if 
+\begin_inset Formula $u<A\left(\boldsymbol{\beta}^{*},\boldsymbol{\beta}^{\left(\tau\right)}\right)$
+\end_inset
+
+ where : 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+\begin_inset Formula $u\sim U\left(0,1\right)$
+\end_inset
+
+ is an uniform random sample.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $A\left(\boldsymbol{\beta}^{*},\boldsymbol{\beta}^{\left(\tau\right)}\right)$
+\end_inset
+
+ is the acceptance probability defined as 
+\begin_inset Formula $A\left(\boldsymbol{\beta}^{*},\boldsymbol{\beta}^{\left(\tau\right)}\right)=\min\left(1,\frac{\widetilde{p}\left(\boldsymbol{\beta}^{*}\right)}{\widetilde{p}\left(\boldsymbol{\beta}^{\left(\tau\right)}\right)}\right)$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Itemize
+then we set 
+\begin_inset Formula $\boldsymbol{\beta}^{\left(\tau+1\right)}=\boldsymbol{\beta}^{*}$
+\end_inset
+
+ and proceed.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Otherwise also we set 
+\begin_inset Formula $\boldsymbol{\beta}^{\left(\tau+1\right)}=\boldsymbol{\beta}^{\left(\tau\right)}$
+\end_inset
+
+ and draw samples from proposal distribution 
+\begin_inset Formula $q\left(\boldsymbol{\beta}|\boldsymbol{\beta}^{\left(\tau+1\right)}\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+We draw 
+\begin_inset Formula $B=5\times10^{4}$
+\end_inset
+
+ many samples from the posterior distribution using MCMC algorithm devised
+ above and burn the first 
+\begin_inset Formula $10\%$
+\end_inset
+
+ samples also use a thinning gap of 
+\begin_inset Formula $5$
+\end_inset
+
+ to avoid significant correlations between the observations.
+ Here are the relevant R codes for the analysis :-
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+likelihood1 <- function(X,y,beta,lambda = 0.01,M = 100)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta = matrix(beta,nrow = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+  a = exp(-(lambda/2)*beta%*%t(beta))
+\end_layout
+
+\begin_layout Plain Layout
+
+  b = exp(y*(beta%*%t(X)))
+\end_layout
+
+\begin_layout Plain Layout
+
+  c = exp(beta%*%t(X))
+\end_layout
+
+\begin_layout Plain Layout
+
+  return(M*a*prod(b/(1+c)))
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+MCMC.Sampler1 <- function(X,y,beta0,B,sg = c(1,1,1),showprogress = TRUE,...)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+  X = cbind(rep(1,nrow(X)),X)
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta0 = matrix(beta0,nrow = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+  post.sample = c(0,0,0)
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta1 = beta0
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta2 = matrix(c(0,0,0),nrow = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+  prog = txtProgressBar(max = B,style = 3)
+\end_layout
+
+\begin_layout Plain Layout
+
+  for(i in 1:B)
+\end_layout
+
+\begin_layout Plain Layout
+
+  {
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta2[1] = beta1[1] + rnorm(1,0,sg[1])
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta2[2] = beta1[2] + rnorm(1,0,sg[2])
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta2[3] = beta1[3] + rnorm(1,0,sg[3])
+\end_layout
+
+\begin_layout Plain Layout
+
+    ratio = likelihood1(X,y,beta = beta2,...)/likelihood1(X,y,beta1,...)
+\end_layout
+
+\begin_layout Plain Layout
+
+    unif = runif(1)
+\end_layout
+
+\begin_layout Plain Layout
+
+    if(unif <= min(1,ratio)) beta1=beta2
+\end_layout
+
+\begin_layout Plain Layout
+
+    post.sample = rbind(post.sample,beta1)
+\end_layout
+
+\begin_layout Plain Layout
+
+    if(showprogress) setTxtProgressBar(pb = prog,value = i)
+\end_layout
+
+\begin_layout Plain Layout
+
+  }
+\end_layout
+
+\begin_layout Plain Layout
+
+  close(prog)
+\end_layout
+
+\begin_layout Plain Layout
+
+  return(post.sample)
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Using this manual function we draw the stated number of posterior samples
+ and make inference from them 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# MCMC parameters
+\end_layout
+
+\begin_layout Plain Layout
+
+B = 10^5
+\end_layout
+
+\begin_layout Plain Layout
+
+n.thin = 10
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Running the MCMC sampler
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Sample1 = MCMC.Sampler1(X = Datas[,1:2],y = Datas$Datas.fail,beta0 = 
+\end_layout
+
+\begin_layout Plain Layout
+
+c(mod.glm$coefficients[1],mod.glm$coefficients[2],mod.glm$coefficients[3]),B,
+\end_layout
+
+\begin_layout Plain Layout
+
+sg = c(3,3,3),showprogress = FALSE,lambda=0.001)
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Sample1 = (Post.Sample1)[-(1:(B/10)),]
+\end_layout
+
+\begin_layout Plain Layout
+
+n.length = nrow(Post.Sample1)
+\end_layout
+
+\begin_layout Plain Layout
+
+batch.size = floor(n.length/n.thin)
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Sample1 = Post.Sample1[n.thin*(1:batch.size),]
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Samp1 = data.frame(Post.Sample1)
+\end_layout
+
+\begin_layout Plain Layout
+
+names(Post.Samp1) <- c('b0','b1','b2')
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now, using the generated posterior samples, we plot the posterior densities
+ of 
+\begin_inset Formula $\boldsymbol{\beta}$
+\end_inset
+
+ individually.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# Posterior distributions of beta0,beta1
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Post.Samp1,aes(x=b0)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+    labs(title = bquote("Density Plot of" ~ beta[0]),x = bquote(beta[0]))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Post.Samp1,aes(x=b1)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = bquote("Density Plot of" ~ beta[1]),x = bquote(beta[1]))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Post.Samp1,aes(x=b2)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = bquote("Density Plot of" ~ beta[2]),x = bquote(beta[2]))
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The posterior means for the three parameters are :-
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+m1 = apply(Post.Samp1, 2, mean)
+\end_layout
+
+\begin_layout Plain Layout
+
+m2 = mod.glm$coefficients
+\end_layout
+
+\begin_layout Plain Layout
+
+data.frame("Posterior.Means" = m1,"Logistic.Coef" = m2)
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To know whether these estimates are more or less consistent or not (ergodicity)
+ we plot the cumulative means of these posterior samples.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# plotting the mean cumulatively w.r.t sample size
+\end_layout
+
+\begin_layout Plain Layout
+
+b0.mean.cum <- cumsum(Post.Samp1$b0)/(1:nrow(Post.Samp1))
+\end_layout
+
+\begin_layout Plain Layout
+
+b1.mean.cum <- cumsum(Post.Samp1$b1)/(1:nrow(Post.Samp1))
+\end_layout
+
+\begin_layout Plain Layout
+
+b2.mean.cum <- cumsum(Post.Samp1$b2)/(1:nrow(Post.Samp1))
+\end_layout
+
+\begin_layout Plain Layout
+
+# plot of means with increasing sample size
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(b0.mean.cum,type = "l",main = bquote(
+\begin_inset Quotes eld
+\end_inset
+
+posterior mean of 
+\begin_inset Quotes erd
+\end_inset
+
+ ~ beta[0]),xlab = bquote(beta[0]),ylab = 
+\begin_inset Quotes eld
+\end_inset
+
+mean
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(b1.mean.cum,type = "l",main = bquote(
+\begin_inset Quotes eld
+\end_inset
+
+posterior mean of 
+\begin_inset Quotes erd
+\end_inset
+
+ ~ beta[1]),xlab = bquote(beta[1]),ylab = 
+\begin_inset Quotes eld
+\end_inset
+
+mean
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(b2.mean.cum,type = "l",main = bquote(
+\begin_inset Quotes eld
+\end_inset
+
+posterior mean of 
+\begin_inset Quotes erd
+\end_inset
+
+ ~ beta[2]),xlab = bquote(beta[2]),ylab = 
+\begin_inset Quotes eld
+\end_inset
+
+mean
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+With increasing sample size, we can see that the mean more or less gets
+ stabilized indicating their consistency.
+\end_layout
+
+\begin_layout Standard
+Here's another plot which may provide better idea through bivariate density
+ plots taking two variables at a time where the density is shown using varying
+ colour density.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# b0,b1
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(Post.Samp1, aes(x = b0, y = b1, fill = ..level..)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  stat_density_2d(geom = "polygon") + 
+\end_layout
+
+\begin_layout Plain Layout
+
+labs(title = bquote("Joint Density of" ~ beta[0] ~ "&" ~ beta[1]),
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote(beta[0]), y = bquote(beta[1]))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# b0,b2
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(Post.Samp1, aes(x = b0, y = b2, fill = ..level..)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  stat_density_2d(geom = "polygon") + 
+\end_layout
+
+\begin_layout Plain Layout
+
+labs(title = bquote("Joint Density of" ~ beta[0] ~ "&" ~ beta[2]), 
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote(beta[0]), y = bquote(beta[2]))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# b1,b2
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(Post.Samp1, aes(x = b1, y = b2, fill = ..level..)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  stat_density_2d(geom = "polygon") + 
+\end_layout
+
+\begin_layout Plain Layout
+
+labs(title = bquote("Joint Density of" ~ beta[1] ~ "&" ~ beta[2]),
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote(beta[1]), y = bquote(beta[2]))
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The most important thing to visualize is how we can model the posterior
+ probability distribution of that 
+\begin_inset Formula $\pi\left(y|\boldsymbol{X}\right)=P\left(Y=1|\boldsymbol{X}\right)=\frac{e^{\beta_{0}+\beta_{1}x_{1}+\beta_{2}x_{2}}}{1+e^{\beta_{0}+\beta_{1}x_{1}+\beta_{2}x_{2}}}$
+\end_inset
+
+.
+ We use the sampled posterior values of 
+\begin_inset Formula $\boldsymbol{\beta}$
+\end_inset
+
+ to plot the approximate distribution of 
+\begin_inset Formula $\pi\left(y|\boldsymbol{X}\right)$
+\end_inset
+
+ for some fixed value of 
+\begin_inset Formula $x_{1},x_{2}$
+\end_inset
+
+.
+ To see how the failure probability depends on 
+\begin_inset Formula $x_{1}$
+\end_inset
+
+ and 
+\begin_inset Formula $x_{2}$
+\end_inset
+
+ we take different values and then plot them.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Prob1 <- function(x.point)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+  x.norm = NULL
+\end_layout
+
+\begin_layout Plain Layout
+
+  x.norm[1] = (x.point[1] - mean(Challeng$temp))/sd(Challeng$temp)
+\end_layout
+
+\begin_layout Plain Layout
+
+  x.norm[2] = (x.point[2] - mean(Challeng$pres))/sd(Challeng$pres)
+\end_layout
+
+\begin_layout Plain Layout
+
+  x_val = matrix(c(1,x.norm),nrow = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+  y_reg = x_val%*%t(Post.Samp1)
+\end_layout
+
+\begin_layout Plain Layout
+
+  y_reg = as.vector(y_reg)
+\end_layout
+
+\begin_layout Plain Layout
+
+  Pi.Posterior <- exp(y_reg)/(1+exp(y_reg))
+\end_layout
+
+\begin_layout Plain Layout
+
+  return(list("samples" = Pi.Posterior,"post.mean" = mean(Pi.Posterior)))
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## Different choices of Tempareture and Pressure
+\end_layout
+
+\begin_layout Plain Layout
+
+x.point1 = c(75,5)
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- Post.Prob1(x.point = x.point1)$samples
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- as.data.frame(Samples.PRob)
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Samples.PRob,aes(Samples.PRob)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+labs(title = bquote("Posterior Density Plot of" ~ pi(X)),
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote("Temp = " ~ .(x.point1[1]) ~ ",Pres = " ~ .(x.point1[2])))
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+x.point1 = c(75,100)
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- Post.Prob1(x.point = x.point1)$samples
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- as.data.frame(Samples.PRob)
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Samples.PRob,aes(Samples.PRob)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+labs(title = bquote("Posterior Density Plot of" ~ pi(X)),
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote("Temp = " ~ .(x.point1[1]) ~ ",Pres = " ~ .(x.point1[2])))
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+x.point1 = c(50,30)
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- Post.Prob1(x.point = x.point1)$samples
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- as.data.frame(Samples.PRob)
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Samples.PRob,aes(Samples.PRob)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+labs(title = bquote("Posterior Density Plot of" ~ pi(X)),
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote("Temp = " ~ .(x.point1[1]) ~ ",Pres = " ~ .(x.point1[2])))
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+x.point1 = c(50,100)
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- Post.Prob1(x.point = x.point1)$samples
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- as.data.frame(Samples.PRob)
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Samples.PRob,aes(Samples.PRob)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+labs(title = bquote("Posterior Density Plot of" ~ pi(X)),
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote("Temp = " ~ .(x.point1[1]) ~ ",Pres = " ~ .(x.point1[2])))
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To see how the posterior mean of failure probability changes with changing
+ values of tempareture we calculate and several points and then plot them
+ joining by a line which gives :- (Here, we took fixed value of pressure
+ = 50 units)
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+temp.vals <- 40:100
+\end_layout
+
+\begin_layout Plain Layout
+
+post.mean.vec <- sapply(temp.vals, 
+\end_layout
+
+\begin_layout Plain Layout
+
+function(x){return(Post.Prob1(x.point = c(x,50))$post.mean)})
+\end_layout
+
+\begin_layout Plain Layout
+
+post.mean <- data.frame("x" = temp.vals,"post.mean" = post.mean.vec)
+\end_layout
+
+\begin_layout Plain Layout
+
+sd <- sapply(temp.vals, 
+\end_layout
+
+\begin_layout Plain Layout
+
+function(x){return(sd(Post.Prob1(x.point = c(x,50))$samples))})
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(post.mean) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_line(aes(x = temp.vals,y = post.mean.vec)) + 
+\end_layout
+
+\begin_layout Plain Layout
+
+  ylim(c(0,1)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_point(data = Challeng,aes(x = temp,y = Datas$Datas.fail)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_errorbar(aes(x = temp.vals,ymin = post.mean.vec - sd/2,
+\end_layout
+
+\begin_layout Plain Layout
+
+  ymax = post.mean.vec + sd/2), linewidth=0.4, colour="blue", alpha=0.9
+\end_layout
+
+\begin_layout Plain Layout
+
+  , size=1.3) + 
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = "Posterior Mean of Failure Probability with Error Bars",
+\end_layout
+
+\begin_layout Plain Layout
+
+  x = "Tempareture",y = "Posterior Mean")
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Author
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+Bayesian Logistic Model 2
+\end_layout
+
+\begin_layout Standard
+Since, we from the begining got enough evidence that Pressure is not that
+ signifcant a covariate hence, we thought of dropping this covariate and
+ then fitting a model assuming bivariate gaussian density.
+ So our model is :-
+\begin_inset Formula 
+\[
+P\left(Y_{i}=1|x_{i}\right)=\frac{e^{\beta_{0}+\beta_{1}x_{1i}}}{1+e^{\beta_{0}+\beta_{1}x_{1i}}}=\pi_{i},i=1,\dots,n
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The likelihood function of 
+\begin_inset Formula $\boldsymbol{\beta}$
+\end_inset
+
+ given the observed data 
+\begin_inset Formula $\boldsymbol{y,X}$
+\end_inset
+
+ can be written as :-
+\begin_inset Formula 
+\begin{align*}
+f\left(\boldsymbol{y}|\boldsymbol{\beta},\boldsymbol{X}\right) & =\prod_{i=1}^{n}f\left(y_{i}|\boldsymbol{\beta},x_{i}\right)\\
+ & =\prod_{i=1}^{n}\pi_{i}^{y_{i}}\left(1-\pi_{i}\right)^{1-y_{i}}\\
+ & =\prod_{i=1}^{n}\left[\frac{e^{\beta_{0}+\beta_{1}x_{1i}}}{1+e^{\beta_{0}+\beta_{1}x_{1i}}}\right]^{y_{i}}\left[\frac{1}{1+e^{\beta_{0}+\beta_{1}x_{1i}}}\right]^{1-y_{i}}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where, 
+\begin_inset Formula $\boldsymbol{\beta}=\begin{pmatrix}\beta_{0}\\
+\beta_{1}
+\end{pmatrix}\sim N_{2}\left(\boldsymbol{0},\lambda^{-1}\boldsymbol{I}_{2}\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Hence, the posterior of 
+\begin_inset Formula $\boldsymbol{\beta}$
+\end_inset
+
+ can be written as :-
+\begin_inset Formula 
+\begin{align*}
+\pi\left(\boldsymbol{\beta}|\boldsymbol{x},\boldsymbol{y}\right) & \propto\pi\left(\boldsymbol{\beta}\right)f\left(\boldsymbol{y}|\boldsymbol{\beta},\boldsymbol{x}\right)\\
+ & \propto\exp\left(-\frac{\lambda}{2}\boldsymbol{\beta}^{T}\boldsymbol{\beta}\right)\prod_{i=1}^{n}\left[\frac{e^{\beta_{0}+\beta_{1}x_{1i}}}{1+e^{\beta_{0}+\beta_{1}x_{1i}}}\right]^{y_{i}}\left[\frac{1}{1+e^{\beta_{0}+\beta_{1}x_{1i}}}\right]^{1-y_{i}}\\
+ & \propto\exp\left(-\frac{\lambda}{2}\boldsymbol{\beta}^{T}\boldsymbol{\beta}\right)\prod\limits _{i=1}^{n}\left[\frac{e^{y_{i}\boldsymbol{\beta}^{T}\boldsymbol{x_{i}}}}{1+e^{\boldsymbol{\beta}^{T}\boldsymbol{x_{i}}}}\right]\left(=\widetilde{p}\left(\boldsymbol{\beta}\right)\right)
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+not much change will be required for drawing posterior samples from this
+ density using MCMC.
+ We do the exact same algorithm with no 
+\begin_inset Formula $\beta_{2}$
+\end_inset
+
+ in this case and then get the following outcomes.
+ The posterior densities we plot one by one.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+likelihood2 <- function(X,y,beta,lambda = 0.01,M = 100)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta = matrix(beta,nrow = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+  a = exp(-(lambda/2)*beta%*%t(beta))
+\end_layout
+
+\begin_layout Plain Layout
+
+  b = exp(y*(beta%*%t(X)))
+\end_layout
+
+\begin_layout Plain Layout
+
+  c = exp(beta%*%t(X))
+\end_layout
+
+\begin_layout Plain Layout
+
+  return(M*a*prod(b/(1+c)))
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+MCMC.Sampler2 <- function(X,y,beta0,B,sg = c(1,1),showprogress = TRUE,...)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+  X = cbind(rep(1,nrow(X)),X[,1])
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta0 = matrix(beta0,nrow = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+  post.sample = c(0,0)
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta1 = beta0
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta2 = matrix(c(0,0),nrow = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+  prog = txtProgressBar(max = B,style = 3)
+\end_layout
+
+\begin_layout Plain Layout
+
+  for(i in 1:B)
+\end_layout
+
+\begin_layout Plain Layout
+
+  {
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta2[1] = beta1[1] + rnorm(1,0,sg[1])
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta2[2] = beta1[2] + rnorm(1,0,sg[2])
+\end_layout
+
+\begin_layout Plain Layout
+
+    ratio = likelihood2(X,y,beta = beta2,...)/likelihood2(X,y,beta1,...)
+\end_layout
+
+\begin_layout Plain Layout
+
+    unif = runif(1)
+\end_layout
+
+\begin_layout Plain Layout
+
+    if(unif <= min(1,ratio)) beta1=beta2
+\end_layout
+
+\begin_layout Plain Layout
+
+    post.sample = rbind(post.sample,beta1)
+\end_layout
+
+\begin_layout Plain Layout
+
+    if(showprogress) setTxtProgressBar(pb = prog,value = i)
+\end_layout
+
+\begin_layout Plain Layout
+
+    }
+\end_layout
+
+\begin_layout Plain Layout
+
+  close(prog)
+\end_layout
+
+\begin_layout Plain Layout
+
+  return(post.sample)
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Similarly, we draw samples from this posterior distribution and make similar
+ plots.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# MCMC parameters
+\end_layout
+
+\begin_layout Plain Layout
+
+B = 10^5
+\end_layout
+
+\begin_layout Plain Layout
+
+n.thin = 10
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Running the MCMC sampler
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Sample2 = MCMC.Sampler2(X = Datas[,1:2],y = Datas$Datas.fail,
+\end_layout
+
+\begin_layout Plain Layout
+
+beta0 = c(mod.glm$coefficients[1],mod.glm$coefficients[2]),B,sg = c(3,3),showprogr
+ess = FALSE)
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Sample2 = (Post.Sample2)[-(1:(B/10)),]
+\end_layout
+
+\begin_layout Plain Layout
+
+n.length = nrow(Post.Sample2)
+\end_layout
+
+\begin_layout Plain Layout
+
+batch.size = floor(n.length/n.thin)
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Sample2 = Post.Sample2[n.thin*(1:batch.size),]
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Samp2 = data.frame(Post.Sample2)
+\end_layout
+
+\begin_layout Plain Layout
+
+names(Post.Samp2) <- c('b0','b1')
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now, using the generated posterior samples, we plot the posterior densities
+ of 
+\begin_inset Formula $\boldsymbol{\beta}$
+\end_inset
+
+ individually.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# Posterior distributions of beta0,beta1
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Post.Samp2,aes(x=b0)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+    labs(title = bquote("Density Plot of" ~ beta[0]),x = bquote(beta[0]))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Post.Samp2,aes(x=b1)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = bquote("Density Plot of" ~ beta[1]),x = bquote(beta[1]))
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The posterior means for the three parameters are :-
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+m1 = apply(Post.Samp1, 2, mean)
+\end_layout
+
+\begin_layout Plain Layout
+
+m2 = mod.glm$coefficients
+\end_layout
+
+\begin_layout Plain Layout
+
+data.frame("Posterior.Means" = m1,"Logistic.Coef" = m2)
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To know whether these estimates are more or less consistent or not (ergodicity)
+ we plot the cumulative means of these posterior samples.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# plotting the mean cumulatively w.r.t sample size
+\end_layout
+
+\begin_layout Plain Layout
+
+b0.mean.cum <- cumsum(Post.Samp2$b0)/(1:nrow(Post.Samp2))
+\end_layout
+
+\begin_layout Plain Layout
+
+b1.mean.cum <- cumsum(Post.Samp2$b1)/(1:nrow(Post.Samp2))
+\end_layout
+
+\begin_layout Plain Layout
+
+# plot of means with increasing sample size
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(b0.mean.cum,type = "l",
+\end_layout
+
+\begin_layout Plain Layout
+
+main = bquote(
+\begin_inset Quotes eld
+\end_inset
+
+posterior mean of 
+\begin_inset Quotes erd
+\end_inset
+
+ ~ beta[0]),xlab = bquote(beta[0]),ylab = 
+\begin_inset Quotes eld
+\end_inset
+
+mean
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(b1.mean.cum,type = "l",
+\end_layout
+
+\begin_layout Plain Layout
+
+main = bquote(
+\begin_inset Quotes eld
+\end_inset
+
+posterior mean of 
+\begin_inset Quotes erd
+\end_inset
+
+ ~ beta[1]),xlab = bquote(beta[1]),ylab = 
+\begin_inset Quotes eld
+\end_inset
+
+mean
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+With increasing sample size, we can see that the mean more or less gets
+ stabilized indicating their consistency.
+\end_layout
+
+\begin_layout Standard
+Here's another plot which may provide better idea through bivariate density
+ plots taking two variables at a time where the density is shown using varying
+ colour density.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# b0,b1
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(Post.Samp2, aes(x = b0, y = b1, fill = ..level..)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  stat_density_2d(geom = "polygon") + 
+\end_layout
+
+\begin_layout Plain Layout
+
+labs(title = bquote("Joint Density of" ~ beta[0] ~ "&" ~ beta[1]),
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote(beta[0]), y = bquote(beta[1]))
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The most important thing to visualize is how we can model the posterior
+ probability distribution of that 
+\begin_inset Formula $\pi\left(y|\boldsymbol{X}\right)=P\left(Y=1|\boldsymbol{X}\right)=\frac{e^{\beta_{0}+\beta_{1}x_{1}}}{1+e^{\beta_{0}+\beta_{1}x_{1}}}$
+\end_inset
+
+.
+ We use the sampled posterior values of 
+\begin_inset Formula $\boldsymbol{\beta}$
+\end_inset
+
+ to plot the approximate distribution of 
+\begin_inset Formula $\pi\left(y|\boldsymbol{X}\right)$
+\end_inset
+
+ for some fixed value of 
+\begin_inset Formula $x_{1},x_{2}$
+\end_inset
+
+.
+ To see how the failure probability depends on 
+\begin_inset Formula $x_{1}$
+\end_inset
+
+ we take different values and then plot them.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Prob2 <- function(x.point)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+  x.norm = (x.point[1] - mean(Challeng$temp))/sd(Challeng$temp)
+\end_layout
+
+\begin_layout Plain Layout
+
+  x_val = matrix(c(1,x.norm),nrow = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+  y_reg = x_val%*%t(Post.Samp2)
+\end_layout
+
+\begin_layout Plain Layout
+
+  y_reg = as.vector(y_reg)
+\end_layout
+
+\begin_layout Plain Layout
+
+  Pi.Posterior <- exp(y_reg)/(1+exp(y_reg))
+\end_layout
+
+\begin_layout Plain Layout
+
+  return(list("samples" = Pi.Posterior,"post.mean" = mean(Pi.Posterior)))
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## Different choices of Tempareture and Pressure
+\end_layout
+
+\begin_layout Plain Layout
+
+x.point1 = 75
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- Post.Prob2(x.point = x.point1)$samples
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- as.data.frame(Samples.PRob)
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Samples.PRob,aes(Samples.PRob)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = bquote("Posterior Density Plot of" ~ pi(X)), 
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote("Temp = " ~ .(x.point1)))
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+x.point1 = 65
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- Post.Prob2(x.point = x.point1)$samples
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- as.data.frame(Samples.PRob)
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Samples.PRob,aes(Samples.PRob)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = bquote("Posterior Density Plot of" ~ pi(X)), 
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote("Temp = " ~ .(x.point1)))
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+x.point1 = 50
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- Post.Prob2(x.point = x.point1)$samples
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- as.data.frame(Samples.PRob)
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Samples.PRob,aes(Samples.PRob)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = bquote("Posterior Density Plot of" ~ pi(X)), 
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote("Temp = " ~ .(x.point1)))
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To see how the posterior mean of failure probability changes with changing
+ values of tempareture we calculate and several points and then plot them
+ joining by a line which gives :- (Here, we took fixed value of pressure
+ = 50 units)
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# Plotting
+\end_layout
+
+\begin_layout Plain Layout
+
+temp.vals <- 40:100
+\end_layout
+
+\begin_layout Plain Layout
+
+post.mean.vec <- sapply(temp.vals, function(x){return(Post.Prob2(x.point = x)$post.mea
+n)})
+\end_layout
+
+\begin_layout Plain Layout
+
+post.mean <- data.frame("x" = temp.vals,"post.mean" = post.mean.vec)
+\end_layout
+
+\begin_layout Plain Layout
+
+sd <- sapply(temp.vals, function(x){return(sd(Post.Prob2(x.point = x)$samples))})
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(post.mean) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_line(aes(x = temp.vals,y = post.mean.vec)) + 
+\end_layout
+
+\begin_layout Plain Layout
+
+  ylim(c(0,1)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_point(data = Challeng,aes(x = temp,y = Datas$Datas.fail)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_errorbar(aes(x = temp.vals,ymin = post.mean.vec - sd/2,
+\end_layout
+
+\begin_layout Plain Layout
+
+                    ymax = post.mean.vec + sd/2), 
+\end_layout
+
+\begin_layout Plain Layout
+
+linewidth=0.4, colour="blue", alpha=0.9
+\end_layout
+
+\begin_layout Plain Layout
+
+                , size=1.3) + 
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = "Posterior Mean of Failure Probability with Error Bars",
+\end_layout
+
+\begin_layout Plain Layout
+
+       x = "Tempareture",y = "Posterior Mean")
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Author
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+Model Comparison
+\end_layout
+
+\begin_layout Standard
+So we have the two models :-
+\begin_inset Formula 
+\begin{align*}
+M_{0}: & X\text{ has density }f_{0}\left(\boldsymbol{y}|\boldsymbol{\beta,x}\right)\text{ where }\boldsymbol{\beta=\begin{pmatrix}\beta_{0},\beta_{1}\end{pmatrix}}\\
+M_{1}: & X\text{ has density }f_{1}\left(\boldsymbol{y}|\boldsymbol{\beta,x}\right)\text{ where }\boldsymbol{\beta=\begin{pmatrix}\beta_{0},\beta_{1},\beta_{2}\end{pmatrix}}
+\end{align*}
+
+\end_inset
+
+ We will use the Bayes Factor 
+\begin_inset Formula $B_{01}\left(\boldsymbol{X}\right)=\frac{m_{0}\left(\boldsymbol{X,y}\right)}{m_{1}\left(\boldsymbol{X,y}\right)}$
+\end_inset
+
+ where 
+\begin_inset Formula 
+\begin{align*}
+m_{0}\left(\boldsymbol{X,y}\right) & =\int f_{0}\left(\boldsymbol{y}|\boldsymbol{\beta},\boldsymbol{x}\right)\pi_{0}\left(\boldsymbol{\beta}\right)d\boldsymbol{\beta}\\
+ & =\int\prod\limits _{i=1}^{n}\left[\frac{e^{y_{i}\boldsymbol{\beta}^{T}\boldsymbol{x_{i}}}}{1+e^{\boldsymbol{\beta}^{T}\boldsymbol{x_{i}}}}\right]\pi_{0}\left(\boldsymbol{\beta}\right)d\boldsymbol{\beta}\\
+ & \approx\frac{1}{N}\sum_{i=1}^{N}f_{0}\left(\boldsymbol{y}|\boldsymbol{\beta}^{\left(i\right)},\boldsymbol{x}\right)\text{ where }\\
+ & \boldsymbol{\beta}^{\left(i\right)}|H_{0}\sim f_{0}\left(\boldsymbol{y}|\boldsymbol{\beta,x}\right)
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+and similarly, compute 
+\begin_inset Formula $m_{1}\left(\boldsymbol{X,y}\right)$
+\end_inset
+
+ and calculate the approximate value of 
+\begin_inset Formula $BF_{10}$
+\end_inset
+
+ as :-
+\begin_inset Formula 
+\[
+BF_{10}=\frac{m_{1}\left(\boldsymbol{X,y}\right)}{m_{0}\left(\boldsymbol{X,y}\right)}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+we use naive monte approximate the values and obtain the approximate value
+ of 
+\begin_inset Formula $\log_{10}\left(BF_{10}\right)$
+\end_inset
+
+ as 
+\begin_inset Formula $\approx-2.065358$
+\end_inset
+
+hence, there is almost no evidence to reject 
+\begin_inset Formula $H_{0}$
+\end_inset
+
+ so this again signifies that the pressure variable is not signifcant.
+ But if we rather consider 
+\begin_inset Formula $\beta_{1}$
+\end_inset
+
+ to be 
+\begin_inset Formula $0$
+\end_inset
+
+ in null and not zero in alternate then we obtain the value of 
+\begin_inset Formula $\log_{10}\left(BF_{10}\right)$
+\end_inset
+
+ as
+\begin_inset Formula $\approx2$
+\end_inset
+
+ which signifies that there is a strong evidence to reject 
+\begin_inset Formula $H_{0}$
+\end_inset
+
+ and hence tempareture must be an important variable.
+\end_layout
+
+\begin_layout Author
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Bayesian Model 2
+\end_layout
+
+\begin_layout Standard
+As another 
+\begin_inset Quotes eld
+\end_inset
+
+different
+\begin_inset Quotes erd
+\end_inset
+
+ model we propose a similar model where, we choose the 
+\begin_inset Quotes eld
+\end_inset
+
+probit
+\begin_inset Quotes erd
+\end_inset
+
+ link function instead of 
+\begin_inset Quotes eld
+\end_inset
+
+logit
+\begin_inset Quotes erd
+\end_inset
+
+ link.
+ Then we can write the probability of failure as :-
+\begin_inset Formula 
+\[
+P\left(Y_{i}=1|x_{i}\right)=\Phi\left(\beta_{0}+\beta_{1}x_{1i}\right)=\pi_{i},i=1,\dots,n
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+as can be seen we don't keep pressure as a covariate here because anyhow
+ it won't have much significance evident from all the analysis done before.
+\end_layout
+
+\begin_layout Standard
+The likelihood function of 
+\begin_inset Formula $\boldsymbol{\beta}$
+\end_inset
+
+ given the observed data 
+\begin_inset Formula $\boldsymbol{y,X}$
+\end_inset
+
+ can be written as :-
+\begin_inset Formula 
+\begin{align*}
+f\left(\boldsymbol{y}|\boldsymbol{\beta},\boldsymbol{X}\right) & =\prod_{i=1}^{n}f\left(y_{i}|\boldsymbol{\beta},x_{i}\right)\\
+ & =\prod_{i=1}^{n}\pi_{i}^{y_{i}}\left(1-\pi_{i}\right)^{1-y_{i}}\\
+ & =\prod_{i=1}^{n}\left\{ \Phi\left(\beta_{0}+\beta_{1}x_{1i}\right)\right\} ^{y_{i}}\left\{ 1-\Phi\left(\beta_{0}+\beta_{1}x_{1i}\right)\right\} ^{1-y_{i}}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where, 
+\begin_inset Formula $\boldsymbol{\beta}=\begin{pmatrix}\beta_{0}\\
+\beta_{1}
+\end{pmatrix}\sim N_{2}\left(\boldsymbol{0},\lambda^{-1}\boldsymbol{I}_{2}\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Hence, the posterior of 
+\begin_inset Formula $\boldsymbol{\beta}$
+\end_inset
+
+ can be written as :-
+\begin_inset Formula 
+\begin{align*}
+\pi\left(\boldsymbol{\beta}|\boldsymbol{x},\boldsymbol{y}\right) & \propto\pi\left(\boldsymbol{\beta}\right)f\left(\boldsymbol{y}|\boldsymbol{\beta},\boldsymbol{x}\right)\\
+ & \propto\exp\left(-\frac{\lambda}{2}\boldsymbol{\beta}^{T}\boldsymbol{\beta}\right)\prod_{i=1}^{n}\left\{ \Phi\left(\beta_{0}+\beta_{1}x_{1i}\right)\right\} ^{y_{i}}\left\{ 1-\Phi\left(\beta_{0}+\beta_{1}x_{1i}\right)\right\} ^{1-y_{i}}\\
+ & \propto\exp\left(-\frac{\lambda}{2}\boldsymbol{\beta}^{T}\boldsymbol{\beta}\right)\prod_{i=1}^{n}\left\{ \Phi\left(\beta_{0}+\beta_{1}x_{1i}\right)\right\} ^{y_{i}}\left\{ 1-\Phi\left(\beta_{0}+\beta_{1}x_{1i}\right)\right\} ^{1-y_{i}}\left(=\widetilde{p}\left(\boldsymbol{\beta}\right)\right)
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+and here too we do similar analysis and plot the results one by one :-
+\end_layout
+
+\begin_layout Standard
+Here is the MCMC sampler (Using MH algorithm) that we have written manually
+ :-
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+likelihood2.1 <- function(X,y,beta,lambda = 0.01,M = 100)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta = matrix(beta,nrow = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+  a = exp(-(lambda/2)*beta%*%t(beta))
+\end_layout
+
+\begin_layout Plain Layout
+
+  b = pnorm(q = beta%*%t(X))
+\end_layout
+
+\begin_layout Plain Layout
+
+  c = (b^y)*((1-b)^(1-y))
+\end_layout
+
+\begin_layout Plain Layout
+
+  return(M*a*prod(c))
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+MCMC.Sampler2.1 <- function(X,y,beta0,B,sg = c(1,1),
+\end_layout
+
+\begin_layout Plain Layout
+
+showprogress = TRUE,lambda = 0.01)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+  X = cbind(rep(1,nrow(X)),X)
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta0 = matrix(beta0,nrow = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+  post.sample = c(0,0,0)
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta1 = beta0
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta2 = matrix(c(0,0,0),nrow = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+  prog = txtProgressBar(max = B,style = 3)
+\end_layout
+
+\begin_layout Plain Layout
+
+  for(i in 1:B)
+\end_layout
+
+\begin_layout Plain Layout
+
+  {
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta2[1] = beta1[1] + rnorm(1,0,sg[1])
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta2[2] = beta1[2] + rnorm(1,0,sg[2])
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta2[3] = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+    ratio = likelihood2.1(X,y,beta = beta2,lambda = lambda)/likelihood2.1(X,y,beta
+1,lambda = lambda)
+\end_layout
+
+\begin_layout Plain Layout
+
+    unif = runif(1)
+\end_layout
+
+\begin_layout Plain Layout
+
+    if(unif <= min(1,ratio)) beta1=beta2
+\end_layout
+
+\begin_layout Plain Layout
+
+    post.sample = rbind(post.sample,beta1)
+\end_layout
+
+\begin_layout Plain Layout
+
+    if(showprogress) setTxtProgressBar(pb = prog,value = i)
+\end_layout
+
+\begin_layout Plain Layout
+
+  }
+\end_layout
+
+\begin_layout Plain Layout
+
+  close(prog)
+\end_layout
+
+\begin_layout Plain Layout
+
+  return(post.sample)
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Then we draw samples and make all the similar plots.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# MCMC parameters
+\end_layout
+
+\begin_layout Plain Layout
+
+B = 10^5
+\end_layout
+
+\begin_layout Plain Layout
+
+n.thin = 10
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Running the MCMC sampler
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Sample2.1 = MCMC.Sampler2.1(X = Datas[,1:2],y = Datas$Datas.fail,
+\end_layout
+
+\begin_layout Plain Layout
+
+beta0 = c(mod.glm$coefficients[1],mod.glm$coefficients[2],
+\end_layout
+
+\begin_layout Plain Layout
+
+mod.glm$coefficients[3]),B,sg = c(3,3,3),showprogress = FALSE,lambda=0.001)
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Sample2.1 = (Post.Sample2.1)[-(1:(B/10)),]
+\end_layout
+
+\begin_layout Plain Layout
+
+n.length = nrow(Post.Sample2.1)
+\end_layout
+
+\begin_layout Plain Layout
+
+batch.size = floor(n.length/n.thin)
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Sample2.1 = Post.Sample2.1[n.thin*(1:batch.size),]
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Samp2.1 = data.frame(Post.Sample2.1)
+\end_layout
+
+\begin_layout Plain Layout
+
+names(Post.Samp2.1) <- c('b0','b1')
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# Posterior distributions of beta0,beta1
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Post.Samp2.1,aes(x=b0)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = bquote("Density Plot of" ~ beta[0]),x = bquote(beta[0]))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Post.Samp2.1,aes(x=b1)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = bquote("Density Plot of" ~ beta[1]),x = bquote(beta[1]))
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# plotting the mean cumulatively w.r.t sample size
+\end_layout
+
+\begin_layout Plain Layout
+
+b0.mean.cum <- cumsum(Post.Samp1$b0)/(1:nrow(Post.Samp1))
+\end_layout
+
+\begin_layout Plain Layout
+
+b1.mean.cum <- cumsum(Post.Samp1$b1)/(1:nrow(Post.Samp1))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# plot of means with increasing sample size
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(b0.mean.cum,type = "l")
+\end_layout
+
+\begin_layout Plain Layout
+
+plot(b1.mean.cum,type = "l")
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# Joint posterior density
+\end_layout
+
+\begin_layout Plain Layout
+
+library(ggplot2)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# b0,b1
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(Post.Samp2.1, aes(x = b0, y = b1, fill = ..level..)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  stat_density_2d(geom = "polygon") + 
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = bquote("Joint Density of" ~ beta[0] ~ "&" ~ beta[1]),
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote(beta[0]), y = bquote(beta[1]))
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# Plotting the probability
+\end_layout
+
+\begin_layout Plain Layout
+
+Post.Prob2.1 <- function(x.point)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+  x.norm = NULL
+\end_layout
+
+\begin_layout Plain Layout
+
+  x.norm[1] = (x.point[1] - mean(Challeng$temp))/sd(Challeng$temp)
+\end_layout
+
+\begin_layout Plain Layout
+
+  x.norm[2] = (x.point[2] - mean(Challeng$pres))/sd(Challeng$pres)
+\end_layout
+
+\begin_layout Plain Layout
+
+  x_val = matrix(c(1,x.norm),nrow = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+  y_reg = x_val%*%t(Post.Samp2.1)
+\end_layout
+
+\begin_layout Plain Layout
+
+  y_reg = as.vector(y_reg)
+\end_layout
+
+\begin_layout Plain Layout
+
+  Pi.Posterior <- pnorm(q = y_reg)
+\end_layout
+
+\begin_layout Plain Layout
+
+  return(list("samples" = Pi.Posterior,"post.mean" = mean(Pi.Posterior)))
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+temp.vals <- 40:100
+\end_layout
+
+\begin_layout Plain Layout
+
+post.mean.vec <- sapply(temp.vals, function(x){return(Post.Prob2.1(x.point = c(x,50))$
+post.mean)})
+\end_layout
+
+\begin_layout Plain Layout
+
+post.mean <- data.frame("x" = temp.vals,"post.mean" = post.mean.vec)
+\end_layout
+
+\begin_layout Plain Layout
+
+sd <- sapply(temp.vals, function(x){return(sd(Post.Prob2.1(x.point = c(x,50))$sample
+s))})
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(post.mean) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_line(aes(x = temp.vals,y = post.mean.vec)) + 
+\end_layout
+
+\begin_layout Plain Layout
+
+  ylim(c(0,1)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_point(data = Challeng,aes(x = temp,y = Datas$Datas.fail)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_errorbar(aes(x = temp.vals,ymin = post.mean.vec - sd/2,ymax = post.mean.vec
+ + sd/2), linewidth=0.4, colour="blue", alpha=0.9, size=1.3) + 
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = "Posterior Mean of Failure Probability with Error Bars",xlab
+ = "Tempareture",ylab = "Posterior Mean")
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We can see that the results seem to in alignment with the data and quite
+ similar to what we got in case of the logistic models.
+\end_layout
+
+\begin_layout Standard
+Lastly, we see how the failure probability changes with changing tempareture.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+x.point1 = c(75,50)
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- Post.Prob2.1(x.point = x.point1)$samples
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- as.data.frame(Samples.PRob)
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Samples.PRob,aes(Samples.PRob)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = bquote("Posterior Density Plot of" ~ pi(X)),
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote("Temp = " ~ .(x.point1[1]) ~ ",Pres = " ~ .(x.point1[2])))
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+x.point1 = c(60,50)
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- Post.Prob2.1(x.point = x.point1)$samples
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- as.data.frame(Samples.PRob)
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Samples.PRob,aes(Samples.PRob)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = bquote("Posterior Density Plot of" ~ pi(X)),
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote("Temp = " ~ .(x.point1[1]) ~ ",Pres = " ~ .(x.point1[2])))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+x.point1 = c(45,50)
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- Post.Prob2.1(x.point = x.point1)$samples
+\end_layout
+
+\begin_layout Plain Layout
+
+Samples.PRob <- as.data.frame(Samples.PRob)
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(data = Samples.PRob,aes(Samples.PRob)) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8) +
+\end_layout
+
+\begin_layout Plain Layout
+
+  labs(title = bquote("Posterior Density Plot of" ~ pi(X)),
+\end_layout
+
+\begin_layout Plain Layout
+
+x = bquote("Temp = " ~ .(x.point1[1]) ~ ",Pres = " ~ .(x.point1[2])))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We can see here, also the results obtained are quite satisfactory.
+\end_layout
+
+\begin_layout Author
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Model Comparison
+\end_layout
+
+\begin_layout Subsection*
+Using Naive Monte Carlo
+\end_layout
+
+\begin_layout Standard
+Finally we compare between these two bayesian models one with logistic link
+ and one with probit link function.
+ We can use bayes factor to compare between them.
+ Here, our hypothesis are :-
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+M_{0}: & \text{The model involving logit link is as good as that}\\
+ & \text{involving the probit link.}\\
+M_{1}: & \text{These two models are not same but one is better}\\
+ & \text{than the other.}
+\end{align*}
+
+\end_inset
+
+ we use the bayes factor here also defined as 
+\begin_inset Formula 
+\[
+BF_{10}=\frac{m_{1}\left(\boldsymbol{X,y}\right)}{m_{0}\left(\boldsymbol{X,y}\right)}
+\]
+
+\end_inset
+
+ where, 
+\begin_inset Formula $m_{i}\left(\boldsymbol{X,y}\right)=\int f_{i}\left(\boldsymbol{y}|\boldsymbol{\beta},\boldsymbol{x}\right)\pi_{i}\left(\boldsymbol{\beta}\right)d\boldsymbol{\beta}$
+\end_inset
+
+ for 
+\begin_inset Formula $i=1,2$
+\end_inset
+
+.
+ We use naive monte carlo method to calculate the values of the integrals
+ through a numerical method using samples drawn from prior distribution.
+ Here is the code for the computation and we obtain the approx value of
+ bayes factor.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# Comparison using Bayes Factor
+\end_layout
+
+\begin_layout Plain Layout
+
+m2.1 <- function(X,y,lambda = 0.0001,N = 10^3,null = TRUE,Fac = 10^3,param
+ = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta = c()
+\end_layout
+
+\begin_layout Plain Layout
+
+  Total = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+  X = cbind(rep(1,nrow(X)),X)
+\end_layout
+
+\begin_layout Plain Layout
+
+  for(i in 1:N)
+\end_layout
+
+\begin_layout Plain Layout
+
+  {
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta[1] = rnorm(1,0,sd = 1/lambda)
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta[2] = rnorm(1,0,sd = 1/lambda)
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta[3] = rnorm(1,0,sd = 1/lambda)
+\end_layout
+
+\begin_layout Plain Layout
+
+    
+\end_layout
+
+\begin_layout Plain Layout
+
+    if(null){
+\end_layout
+
+\begin_layout Plain Layout
+
+      beta[param] = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+    }
+\end_layout
+
+\begin_layout Plain Layout
+
+    
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta = matrix(beta,byrow = TRUE,nrow = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+    b = exp(y*(beta%*%t(X)))
+\end_layout
+
+\begin_layout Plain Layout
+
+    c = exp(beta%*%t(X))
+\end_layout
+
+\begin_layout Plain Layout
+
+    M = Fac*prod(b/(1+c))
+\end_layout
+
+\begin_layout Plain Layout
+
+    Total = M + Total
+\end_layout
+
+\begin_layout Plain Layout
+
+  }
+\end_layout
+
+\begin_layout Plain Layout
+
+  return(Total/N)
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# New model
+\end_layout
+
+\begin_layout Plain Layout
+
+m2.2 <- function(X,y,lambda = 0.0001,N = 10^3,null = TRUE,Fac = 10^3,param
+ = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta = c()
+\end_layout
+
+\begin_layout Plain Layout
+
+  Total = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+  X = cbind(rep(1,nrow(X)),X)
+\end_layout
+
+\begin_layout Plain Layout
+
+  for(i in 1:N)
+\end_layout
+
+\begin_layout Plain Layout
+
+  {
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta[1] = rnorm(1,0,sd = 1/lambda)
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta[2] = rnorm(1,0,sd = 1/lambda)
+\end_layout
+
+\begin_layout Plain Layout
+
+    beta[3] = rnorm(1,0,sd = 1/lambda)
+\end_layout
+
+\begin_layout Plain Layout
+
+    
+\end_layout
+
+\begin_layout Plain Layout
+
+    if(null){
+\end_layout
+
+\begin_layout Plain Layout
+
+      beta[param] = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+    }
+\end_layout
+
+\begin_layout Plain Layout
+
+    
+\end_layout
+
+\begin_layout Plain Layout
+
+    b = pnorm(q = beta%*%t(X))
+\end_layout
+
+\begin_layout Plain Layout
+
+    c = (b^y)*((1-b)^(1-y))
+\end_layout
+
+\begin_layout Plain Layout
+
+    M = Fac*prod(c)
+\end_layout
+
+\begin_layout Plain Layout
+
+    
+\end_layout
+
+\begin_layout Plain Layout
+
+    Total = M + Total
+\end_layout
+
+\begin_layout Plain Layout
+
+  }
+\end_layout
+
+\begin_layout Plain Layout
+
+  return(Total/N)
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+set.seed(1000)
+\end_layout
+
+\begin_layout Plain Layout
+
+a = m2.1(X = Datas[,1:2],y = Datas$Datas.fail,N = 10^4,
+\end_layout
+
+\begin_layout Plain Layout
+
+lambda = 0.1,null = TRUE,param = 3)
+\end_layout
+
+\begin_layout Plain Layout
+
+set.seed(1000)
+\end_layout
+
+\begin_layout Plain Layout
+
+b = m2.2(X = Datas[,1:2],y = Datas$Datas.fail,N = 10^4,
+\end_layout
+
+\begin_layout Plain Layout
+
+lambda = 0.1,null = TRUE,param = 3)
+\end_layout
+
+\begin_layout Plain Layout
+
+a;b
+\end_layout
+
+\begin_layout Plain Layout
+
+BF10 = b/a
+\end_layout
+
+\begin_layout Plain Layout
+
+log(BF10)
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As can be seen the value is small hence, we have no evidence whatsoever
+ to reject the alternate hypothesis hence, we accept 
+\begin_inset Formula $H_{0}$
+\end_inset
+
+ here.
+\end_layout
+
+\begin_layout Subsection*
+Using Harmonic Mean Estimator
+\end_layout
+
+\begin_layout Standard
+Secondly, we use the harmonic estimator which utilizes the posterior samples
+ generated using MCMC to calculate the marginal likelihoods.
+ We define it as :-
+\begin_inset Formula 
+\[
+\widetilde{Z}_{\mathcal{M}}=\left[\frac{1}{N}\sum_{i=1}^{N}\frac{1}{f\left(\boldsymbol{X,y}|\boldsymbol{\beta}^{\left(i\right)},\mathcal{M}\right)}\right]_{\boldsymbol{\beta}^{\left(i\right)}\sim\pi\left(\boldsymbol{\beta}|\boldsymbol{X,y}\right)}^{-1}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Using this we calculate 
+\begin_inset Formula $\widetilde{Z}_{\mathcal{M}_{1}}$
+\end_inset
+
+ and 
+\begin_inset Formula $\widetilde{Z}_{\mathcal{M}_{0}}$
+\end_inset
+
+ and calculate their ratio to evaluate approximate value of 
+\begin_inset Formula $BF_{10}$
+\end_inset
+
+ as :-
+\begin_inset Formula 
+\[
+\widetilde{\text{BF}}_{10}=\frac{\widetilde{Z}_{\mathcal{M}_{1}}}{\widetilde{Z}_{\mathcal{M}_{0}}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+which came around 
+\begin_inset Formula $0.699$
+\end_inset
+
+ and as this value is not very much significant in favour of 
+\begin_inset Formula $H_{1}$
+\end_inset
+
+ so we accept 
+\begin_inset Formula $H_{0}$
+\end_inset
+
+ and conclude that both the models are more or less equivalent.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<comment=NA,eval=TRUE,warning=F,message=F,fig.height=4,fig.width=6>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+# Using harmonic estimator
+\end_layout
+
+\begin_layout Plain Layout
+
+# Logistic Model
+\end_layout
+
+\begin_layout Plain Layout
+
+N = nrow(Post.Samp2)
+\end_layout
+
+\begin_layout Plain Layout
+
+Total = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+X = cbind(rep(1,nrow(Datas)),Datas[,1:2]);y = Datas$Datas.fail
+\end_layout
+
+\begin_layout Plain Layout
+
+M1 = NULL
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+for(i in 1:N)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta = Post.Samp2[i,]
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta = cbind(beta,0)
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta = as.matrix(beta)
+\end_layout
+
+\begin_layout Plain Layout
+
+  b = exp(y*(beta%*%t(X)))
+\end_layout
+
+\begin_layout Plain Layout
+
+  c = exp(beta%*%t(X))
+\end_layout
+
+\begin_layout Plain Layout
+
+  M1[i] = prod(b/(1+c))
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+Est1 = 1/mean(1/M1)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Probit Model
+\end_layout
+
+\begin_layout Plain Layout
+
+N = nrow(Post.Samp2.1)
+\end_layout
+
+\begin_layout Plain Layout
+
+Total = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+X = cbind(rep(1,nrow(Datas)),Datas[,1:2]);y = Datas$Datas.fail
+\end_layout
+
+\begin_layout Plain Layout
+
+M2 = NULL
+\end_layout
+
+\begin_layout Plain Layout
+
+i = 1
+\end_layout
+
+\begin_layout Plain Layout
+
+for(i in 1:N)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta = Post.Samp2.1[i,]
+\end_layout
+
+\begin_layout Plain Layout
+
+  beta = as.matrix(beta)
+\end_layout
+
+\begin_layout Plain Layout
+
+  b = pnorm(q = beta%*%t(X))
+\end_layout
+
+\begin_layout Plain Layout
+
+  c = (b^y)*((1-b)^(1-y))
+\end_layout
+
+\begin_layout Plain Layout
+
+  M2[i] = prod(c)
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+Est2 = 1/mean(1/M2)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+## Estimated Value of Bayes Factor(10)
+\end_layout
+
+\begin_layout Plain Layout
+
+Est1/Est2
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+here also, we can clearly see the approximate value is quite close to 
+\begin_inset Formula $1$
+\end_inset
+
+ which signifies the same as before.
+\end_layout
+
+\end_body
+\end_document
